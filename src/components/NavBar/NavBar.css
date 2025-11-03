@@ -1,0 +1,11 @@
+.navbar-container {
+  position: fixed;
+  top: 0;
+  right: 20px;
+  width: 100%;
+  display: flex;
+  justify-content: flex-end;
+  flex-direction: row;
+  gap: 30px;
+  align-items: center;
+}

@@ -1,6 +1,6 @@
 import { Link } from "react-router";
 import logo from "/FeelingsWheelLogo.jpg";
-import "./Navbar.css";
+import "./NavBar.css";
 
 function Navbar() {
   return (

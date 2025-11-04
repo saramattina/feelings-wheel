@@ -36,8 +36,7 @@ function EmotionalCheckIn() {
 
 
         <p className="step-skip">
-          ** If you skipped Step 1, take a moment to return to it and see if the
-          feeling is more easily identifiable!**
+          ** If you skipped Step 1, take a moment to return to it! **
         </p>
 
          <div className="step">

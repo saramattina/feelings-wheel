@@ -16,14 +16,14 @@
 h1 {
   text-align: center;
   font-size: 2.6rem;
-  color: #305f72;
+  color: #69703e;;
   margin-bottom: 2.2rem;
   font-weight: 600;
   letter-spacing: 1px;
 }
 
 h3 {
-  color: #55828b;
+  color: #69703e;
   margin-top: 1rem;
   margin-bottom: 0.8rem;
   font-size: 1.3rem;
@@ -36,8 +36,8 @@ h3 {
 .step-skip {
   background-color: #ffffffcc;
   padding: 14px 20px;
-  border-left: 4px solid #a8dadc;
-  border-right: 4px solid #a8dadc;
+  border-left: 4px solid #A2A77F;
+  border-right: 4px solid #A2A77F;
   border-radius: 12px;
   font-size: 1.05rem;
   line-height: 1.7;
@@ -59,7 +59,8 @@ p {
 
 .step-skip {
   font-style: italic;
-  color: #55828b;
+  color: #69703e;
+  text-align: center;
 }
 
 /* Animation for smooth loading */

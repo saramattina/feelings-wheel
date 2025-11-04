@@ -5,9 +5,10 @@ import "./Navbar.css";
 function Navbar() {
   return (
     <div className="navbar-container">
-        <div className="logo">
+        <div className="logo-section">
             <Link to="/">
-            <img src={logo} alt="logo showing color wheel with smiley face"/>
+            <img src={logo} alt="logo showing color wheel with smiley face" className="logo-img"/>
+            <span className="logo-text">Feelings Wheel</span>
             </Link>
         </div>
 

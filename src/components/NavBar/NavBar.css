@@ -5,30 +5,58 @@
   right: 0;
   background-color: linen;
   z-index: 1000;
-  
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 24px;
+  box-sizing: border-box;
 }
 
-.logo img {
-  position: absolute;
-  top: 20px;
-  left: 30px;
+/* Navbar Left: Image and Title */
+.logo-section {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.logo-img {
   height: 60px;
-  width: auto;
+  width: 60px;
   border-radius: 50%;
   transition: transform 0.3s ease;
+  display: block;
 }
 
-.logo img:hover {
+.logo-img:hover {
   transform: rotate(10deg) scale(1.05);
 }
 
+.logo-text {
+  font-size: 1.6rem;
+  font-family: "Poppins", "Segoe UI", sans-serif;
+  font-weight: 600;
+  color: #69703e;
+  letter-spacing: 0.5px;
+  user-select: none;
+  line-height: 1;
+  display: inline-flex;
+}
+
+.logo-section a {
+  display: flex; 
+  align-items: center;  
+  gap: 12px;     
+  text-decoration: none; 
+}
+
+
+/* Navbar Right: links */
 .links {
   position: absolute;
   top: 20px;
   right: 10px;
   display: flex;
-  gap: 10px;
-  margin-right: 25px;
+  margin-right: 10px;
 }
 
 .links a {
@@ -36,7 +64,7 @@
   text-decoration: none;
   font-weight: 500;
   font-family: "Poppins", "Segoe UI", sans-serif;
-  font-size: 1.05rem;
+  font-size: 1.1rem;
   padding: 8px 14px;
   border-radius: 10px;
   transition: all 0.25s ease-in-out;
@@ -45,6 +73,7 @@
 .links a:hover {
   color: #1d1f11;
 }
+
 
 /* ----------- Mobile styling ----------- */
 @media (max-width: 700px) {

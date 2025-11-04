@@ -1,0 +1,42 @@
+/* Credit goes to Dylan Tai for some of this code! */
+
+.wheel-container {
+  position: relative;
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  height: calc(100vh - 100px);
+  margin-top: 20px;
+  user-select: none;
+  cursor: grab;
+  overflow: visible;
+  max-width: min(80vw, 700px);
+  margin-left: -190px;
+  margin-top: 95px;
+  margin-bottom: 95px;
+}
+
+.tooltip {
+  position: absolute;
+  top: 50%;
+  left: 100%;
+  transform: translate(calc(10px), -50%);
+  background: rgba(255, 255, 255, 0.95);
+  border: 2px solid #a2a77f;
+  border-radius: 25px;
+  padding: 10px 15px;
+  text-align: center;
+  min-width: 250px;
+  pointer-events: none;
+  z-index: 10;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+.wheel-image {
+  width: 100%;
+  max-width: 700px;
+  height: auto;
+  object-fit: contain;
+  transform-origin: 50% 50%;
+  pointer-events: auto;
+}

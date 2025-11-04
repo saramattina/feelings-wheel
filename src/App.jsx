@@ -1,7 +1,7 @@
-import { useState } from 'react';
 import { Route, Routes } from 'react-router';
 import FeelingsWheel from "./FeelingsWheel/FeelingsWheel.jsx";
 import NavBar from './components/NavBar/NavBar.jsx';
+import Footer from './components/Footer/Footer.jsx';
 import EmotionalCheckIn from './EmotionalCheckIn/EmotionalCheckIn.jsx';
 import './App.css';
 
@@ -14,6 +14,7 @@ function App() {
         <Route path="/" element={<FeelingsWheel />} />
         <Route path="/emotional-checkin" element={<EmotionalCheckIn />} />
       </Routes>
+      <Footer />
     </>
   )
 }

@@ -2,7 +2,6 @@
 
 import { useRef, useState, useEffect } from "react";
 import wheelImg from "../assets/FeelingsWheel.png";
-<assets />;
 import "./FeelingsWheel.css";
 
 const innerCircle = [
@@ -839,9 +838,33 @@ const Wheel = () => {
   const containerRef = useRef(null);
   const [angle, setAngle] = useState(0);
   const [hovered, setHovered] = useState(null);
+  const [mobileHovered, setMobileHovered] = useState(null);
+  const [isMobile, setIsMobile] = useState(false);
 
   const dragging = useRef(false);
   const lastAngle = useRef(0);
+
+  //   check if user is on mobile
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth <= 700);
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
+
+  //   close tooltip by clicking outside of wheel (mobile only)
+  useEffect(() => {
+    if (!isMobile) return;
+
+    const handleOutsideClick = (e) => {
+      if (!containerRef.current.contains(e.target)) {
+        setMobileHovered(null);
+      }
+    };
+    document.addEventListener("click", handleOutsideClick);
+    return () => document.removeEventListener("click", handleOutsideClick);
+  }, [isMobile]);
+
 
   const getAngleFromEvent = (e, rect) => {
     const cx = rect.left + rect.width / 2;
@@ -878,6 +901,8 @@ const Wheel = () => {
   };
 
   const handleMouseMove = (e) => {
+    if (!isMobile) return;
+
     const img = imgRef.current;
     if (!img) return;
 
@@ -935,6 +960,55 @@ const Wheel = () => {
     setHovered(hoveredEmotion || null);
   };
 
+    const handleClick = (e) => {
+    if (!isMobile) return;
+
+    const rect = containerRef.current.getBoundingClientRect();
+    const img = imgRef.current;
+    if (!img) return;
+
+    const cx = rect.left + rect.width / 2;
+    const cy = rect.top + rect.height / 2;
+    const dx = (e.clientX ?? e.touches?.[0].clientX) - cx;
+    const dy = (e.clientY ?? e.touches?.[0].clientY) - cy;
+    const rad = (-angle * Math.PI) / 180;
+    const ux = dx * Math.cos(rad) - dy * Math.sin(rad);
+    const uy = dx * Math.sin(rad) + dy * Math.cos(rad);
+    const dist = Math.hypot(ux, uy);
+
+    const layoutRadius = img.clientWidth / 2;
+    const multiRing = 0.24;
+    const innerIRadius = layoutRadius * multiRing * 1;
+    const innerORadius = layoutRadius * multiRing * 2;
+    const middleORadius = layoutRadius * multiRing * 3;
+    const outerORadius = layoutRadius * multiRing * 4;
+
+    if (dist < innerIRadius || dist >= outerORadius) {
+      setMobileHovered(null);
+      return;
+    }
+
+    let deg = (Math.atan2(uy, ux) * 180) / Math.PI;
+    if (deg < 0) deg += 360;
+
+    const hit = (circle) =>
+      circle.find((emo) =>
+        emo.start < emo.end
+          ? deg >= emo.start && deg < emo.end
+          : deg >= emo.start || deg < emo.end
+      );
+
+    let hoveredEmotion = null;
+    if (dist >= innerIRadius && dist < innerORadius)
+      hoveredEmotion = hit(innerCircle);
+    else if (dist >= innerORadius && dist < middleORadius)
+      hoveredEmotion = hit(middleCircle);
+    else if (dist >= middleORadius && dist < outerORadius)
+      hoveredEmotion = hit(outerCircle);
+
+    setMobileHovered(hoveredEmotion || null);
+  };
+
   useEffect(() => {
     return () => {
       window.removeEventListener("pointermove", handlePointerMove);
@@ -942,29 +1016,32 @@ const Wheel = () => {
     };
   }, []);
 
-  return (
-      <div
-        ref={containerRef}
-        className="wheel-container"
-        onPointerDown={handlePointerDown}
-        onMouseMove={handleMouseMove}
-      >
-        <img
-          ref={imgRef}
-          src={wheelImg}
-          alt="Feelings Wheel"
-          draggable="false"
-          className="wheel-image"
-          style={{ transform: `rotate(${angle}deg)` }}
-        />
+    const tooltipData = isMobile ? mobileHovered : hovered;
 
-        {hovered && (
-          <div className="tooltip">
-            <h3>{hovered.name}</h3>
-            <p>{hovered.description}</p>
-          </div>
-        )}
-      </div>
+  return (
+    <div
+      ref={containerRef}
+      className="wheel-container"
+      onPointerDown={handlePointerDown}
+      onMouseMove={handleMouseMove}
+      onClick={handleClick}
+    >
+      <img
+        ref={imgRef}
+        src={wheelImg}
+        alt="Feelings Wheel"
+        draggable="false"
+        className="wheel-image"
+        style={{ transform: `rotate(${angle}deg)` }}
+      />
+
+      {tooltipData && (
+        <div className="tooltip">
+          <h3>{tooltipData.name}</h3>
+          <p>{tooltipData.description}</p>
+        </div>
+      )}
+    </div>
   );
 };
 

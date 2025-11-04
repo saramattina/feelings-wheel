@@ -1,11 +1,19 @@
-import { useState } from 'react'
-import './App.css'
+import { useState } from 'react';
+import { Route, Routes } from 'react-router';
+import FeelingsWheel from "./FeelingsWheel/FeelingsWheel.jsx";
+import NavBar from './components/NavBar/NavBar.jsx';
+import EmotionalCheckIn from './EmotionalCheckIn/EmotionalCheckIn.jsx';
+import './App.css';
 
 function App() {
 
   return (
     <>
-      <p>Hello world</p>
+      <NavBar />
+      <Routes>
+        <Route path="/" element={<FeelingsWheel />} />
+        <Route path="/emotional-checkin" element={<EmotionalCheckIn />} />
+      </Routes>
     </>
   )
 }

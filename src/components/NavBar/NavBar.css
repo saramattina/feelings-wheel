@@ -1,11 +1,64 @@
 .navbar-container {
-  position: fixed;
-  top: 0;
-  right: 20px;
   width: 100%;
   display: flex;
   justify-content: flex-end;
-  flex-direction: row;
-  gap: 30px;
   align-items: center;
+  padding: 10px;
+  margin: 0px auto;
+  transition: all 0.3s ease-in-out;
+}
+
+.logo img {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  height: 60px;
+  width: auto;
+  border-radius: 50%;
+  transition: transform 0.3s ease;
+}
+
+.logo img:hover {
+  transform: rotate(10deg) scale(1.05);
+}
+
+.links {
+  /* display: flex; */
+  gap: 30px;
+  top: 20px;
+  right: 20px;
+}
+
+.links a {
+  color: #305f72;
+  text-decoration: none;
+  font-weight: 500;
+  font-family: "Poppins", "Segoe UI", sans-serif;
+  font-size: 1.05rem;
+  padding: 8px 14px;
+  border-radius: 10px;
+  transition: all 0.25s ease-in-out;
+}
+
+.links a:hover {
+  color: #091321;
+}
+
+/* ----------- Mobile styling ----------- */
+@media (max-width: 700px) {
+  .navbar-container {
+    flex-direction: column;
+    gap: 10px;
+    padding: 16px;
+  }
+
+  .links {
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 18px;
+  }
+
+  .logo img {
+    height: 50px;
+  }
 }

@@ -901,8 +901,6 @@ const Wheel = () => {
   };
 
   const handleMouseMove = (e) => {
-    if (!isMobile) return;
-
     const img = imgRef.current;
     if (!img) return;
 

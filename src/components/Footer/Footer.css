@@ -10,7 +10,7 @@
 
 @media (max-width: 700px) {
     .footer {
-        width: 95%;
+        position: fixed;
         bottom: 0;
     }
 }

@@ -7,6 +7,8 @@ import "./NavBar.css";
 function Navbar() {
   const [isOpen, setOpen] = useState(false);
 
+  const handleLinkClick = () => setOpen(false);
+
   return (
     <div className="navbar-container">
       <div className="logo-section">
@@ -27,8 +29,8 @@ function Navbar() {
 
 
       <div className={`links ${isOpen ? "open" : ""}`}>
-        <Link to="/">Feelings Wheel</Link>
-        <Link to="/emotional-checkin">Emotional Check-In Guide</Link>
+        <Link to="/" onClick={handleLinkClick}>Feelings Wheel</Link>
+        <Link to="/emotional-checkin" onClick={handleLinkClick}>Emotional Check-In Guide</Link>
       </div>
     </div>
   );

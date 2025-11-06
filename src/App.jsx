@@ -3,6 +3,7 @@ import FeelingsWheel from "./FeelingsWheel/FeelingsWheel.jsx";
 import NavBar from './components/NavBar/NavBar.jsx';
 import Footer from './components/Footer/Footer.jsx';
 import EmotionalCheckIn from './EmotionalCheckIn/EmotionalCheckIn.jsx';
+import Resources from './Resources/Resources.jsx';
 import './App.css';
 
 function App() {
@@ -13,6 +14,7 @@ function App() {
       <Routes>
         <Route path="/" element={<FeelingsWheel />} />
         <Route path="/emotional-checkin" element={<EmotionalCheckIn />} />
+        <Route path="/resources" element={<Resources />} />
       </Routes>
       <Footer />
     </>

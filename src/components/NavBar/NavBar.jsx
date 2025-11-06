@@ -31,6 +31,7 @@ function Navbar() {
       <div className={`links ${isOpen ? "open" : ""}`}>
         <Link to="/" onClick={handleLinkClick}>Feelings Wheel</Link>
         <Link to="/emotional-checkin" onClick={handleLinkClick}>Emotional Check-In Guide</Link>
+        <Link to="/resources" onClick={handleLinkClick}>Resources</Link>
       </div>
     </div>
   );

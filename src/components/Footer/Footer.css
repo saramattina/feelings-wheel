@@ -6,11 +6,15 @@
   width: 100%;
   font-style: italic;
   padding-left: 20px;
+  display: flex;
+  justify-content: space-around;
+  flex-wrap: wrap;
+  text-align: center;
 }
 
 @media (max-width: 700px) {
-    .footer {
-        position: fixed;
-        bottom: 0;
-    }
+  .footer {
+    position: fixed;
+    bottom: 0;
+  }
 }

@@ -16,6 +16,16 @@
   margin-top: 2px;
 }
 
+.footer-link {
+  color: #555;
+  font-style: italic;
+  text-decoration: none;
+}
+
+.footer-link:hover {
+    color: #1d1f11;
+}
+
 @media (max-width: 700px) {
   .footer {
     position: fixed;

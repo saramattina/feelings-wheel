@@ -32,4 +32,8 @@
     bottom: 0;
     padding-left: 0;
   }
+
+  .footer-credit {
+    display: none;
+  }
 }

@@ -30,3 +30,9 @@ a {
 a:hover {
   color: #1d1f11;
 }
+
+@media (max-width: 700px) {
+  .resource-list {
+    padding-bottom: 150px;
+  }
+}

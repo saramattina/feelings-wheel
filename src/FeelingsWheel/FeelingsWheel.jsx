@@ -1,4 +1,4 @@
-// Credit goes to Dylan Tai for this code!
+// Credit goes to Dylan Tai for this wheel code!
 
 import { useRef, useState, useEffect } from "react";
 import wheelImg from "../assets/FeelingsWheel.png";
@@ -1017,6 +1017,7 @@ const Wheel = () => {
     const tooltipData = isMobile ? mobileHovered : hovered;
 
   return (
+    <>
     <div
       ref={containerRef}
       className="wheel-container"
@@ -1039,7 +1040,17 @@ const Wheel = () => {
           <p>{tooltipData.description}</p>
         </div>
       )}
+
+        <div id="how-to-use">
+          <h1>How to Use A Feelings Wheel</h1>
+          <p>A feelings wheel can be a helpful tool for identifying and naming emotions. To use, start at the center of the feelings wheel and then move more outward to more specific feeling words. Take a moment to reflect on which word feels most accurate. It can help to think about what happened, how your body feels, or what thoughts you're having. Using a feeling wheel regularly can help build emotional awareness and make it easier to express what you're feeling to yourself and others!</p>
+      </div>
+
     </div>
+
+  
+
+    </>
   );
 };
 

@@ -34,5 +34,6 @@ a:hover {
 @media (max-width: 700px) {
   .resource-list {
     padding-bottom: 150px;
+    margin-bottom: 50px;
   }
 }

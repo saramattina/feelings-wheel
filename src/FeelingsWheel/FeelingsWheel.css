@@ -48,14 +48,19 @@
         touch-action: none;
     }
 
+    .wheel-image {
+      margin-top: 65px;
+      border-radius: 54px;
+    }
+
     .tooltip {
         left: 0;
-        top: 125%;
+        top: 48%;
         max-width: 69vw;
     }
 
     #how-to-use {
-        margin-top: 100px;
+        margin-top: 215px;
         margin-bottom: 160px
     }
 }

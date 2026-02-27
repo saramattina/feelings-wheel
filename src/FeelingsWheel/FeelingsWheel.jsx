@@ -1042,8 +1042,10 @@ const Wheel = () => {
       )}
 
         <div id="how-to-use">
-          <h1>How to Use A Feelings Wheel</h1>
+          <h1>How to Use</h1>
           <p>A feelings wheel can be a helpful tool for identifying and naming emotions. To use, start at the center of the feelings wheel and then move more outward to more specific feeling words. Take a moment to reflect on which word feels most accurate. It can help to think about what happened, how your body feels, or what thoughts you're having. Using a feeling wheel regularly can help build emotional awareness and make it easier to express what you're feeling to yourself and others!</p>
+
+         <p>Feel free to check out our <a href="/emotional-checkin">Emotional Check-In Guide</a> for more help!</p>
       </div>
 
     </div>

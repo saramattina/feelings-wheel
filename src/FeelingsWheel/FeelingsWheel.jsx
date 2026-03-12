@@ -841,8 +841,11 @@ const Wheel = () => {
   const [mobileHovered, setMobileHovered] = useState(null);
   const [isMobile, setIsMobile] = useState(false);
 
+  // I added lastVector to track the last position of the pointer relative to the center of the wheel, which allows for smoother and more accurate rotation on mobile devices. The angle is calculated based on the change in the vector from the last position to the current position, rather than relying solely on the angle from the center to the pointer, which can be less stable on touch screens. But it didn't fix it
   const dragging = useRef(false);
   const lastAngle = useRef(0);
+  const lastVector = useRef(null);
+  const centerRef = useRef({ x: 0, y: 0 });
 
   //   check if user is on mobile
   useEffect(() => {
@@ -850,6 +853,11 @@ const Wheel = () => {
     checkMobile();
     window.addEventListener("resize", checkMobile);
     return () => window.removeEventListener("resize", checkMobile);
+  }, []);
+
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
   }, []);
 
   //   close tooltip by clicking outside of wheel (mobile only)
@@ -865,40 +873,141 @@ const Wheel = () => {
     return () => document.removeEventListener("click", handleOutsideClick);
   }, [isMobile]);
 
-
   const getAngleFromEvent = (e, rect) => {
     const cx = rect.left + rect.width / 2;
     const cy = rect.top + rect.height / 2;
-    const x = (e.clientX ?? e.touches?.[0].clientX) - cx;
-    const y = (e.clientY ?? e.touches?.[0].clientY) - cy;
+
+    // const x = (e.clientX ?? e.touches?.[0].clientX) - cx;
+    // const y = (e.clientY ?? e.touches?.[0].clientY) - cy;
+    // return (Math.atan2(y, x) * 180) / Math.PI;
+
+    const x = e.clientX - cx;
+    const y = e.clientY - cy;
     return (Math.atan2(y, x) * 180) / Math.PI;
   };
 
-  const handlePointerDown = (e) => {
-    e.preventDefault();
-    dragging.current = true;
-    const rect = containerRef.current.getBoundingClientRect();
-    lastAngle.current = getAngleFromEvent(e, rect);
-    window.addEventListener("pointermove", handlePointerMove);
-    window.addEventListener("pointerup", handlePointerUp);
+  const getPoint = (e) => {
+    if (e.touches && e.touches.length > 0) {
+      return {
+        x: e.touches[0].clientX,
+        y: e.touches[0].clientY,
+      };
+    }
+
+    return {
+      x: e.clientX,
+      y: e.clientY,
+    };
   };
 
-  const handlePointerUp = () => {
-    dragging.current = false;
-    window.removeEventListener("pointermove", handlePointerMove);
-    window.removeEventListener("pointerup", handlePointerUp);
+// I tried a few different approaches in the handlePointer functions to improve mobile performance, thinking touching the screen is different than using a mouse. I incorporated the lastVector here, but still nothing. I commented out some old code for comparison
+
+
+  // const handlePointerDown = (e) => {
+  //   e.preventDefault();
+
+  //   e.target.setPointerCapture(e.pointerId); // for mobile stability
+
+  //   if (e.target.setPointerCapture) {
+  //     e.target.setPointerCapture(e.pointerId);
+  //   }
+
+  //   dragging.current = true;
+  //   const rect = containerRef.current.getBoundingClientRect();
+  //   lastAngle.current = getAngleFromEvent(e, rect);
+
+  //   window.addEventListener("pointermove", handlePointerMove);
+  //   window.addEventListener("pointerup", handlePointerUp);
+  // };
+
+const handlePointerDown = (e) => {
+  e.preventDefault();
+  e.currentTarget.setPointerCapture(e.pointerId);
+
+  dragging.current = true;
+
+  const rect = containerRef.current.getBoundingClientRect();
+
+  centerRef.current = {
+    x: rect.left + rect.width / 2,
+    y: rect.top + rect.height / 2,
   };
 
-  const handlePointerMove = (e) => {
-    if (!dragging.current) return;
-    const rect = containerRef.current.getBoundingClientRect();
-    const a = getAngleFromEvent(e, rect);
-    let diff = a - lastAngle.current;
-    if (diff > 180) diff -= 360;
-    if (diff < -180) diff += 360;
-    setAngle((prev) => (prev + diff + 360) % 360);
-    lastAngle.current = a;
+  const { x, y } = getPoint(e);
+
+  lastVector.current = {
+    x: x - centerRef.current.x,
+    y: y - centerRef.current.y,
   };
+};
+
+  // const handlePointerUp = (e) => {
+  //   dragging.current = false;
+
+  //   // for mobile: release capture
+  //   if (e.target.releasePointerCapture) {
+  //     e.target.releasePointerCapture(e.pointerId);
+  //   }
+
+  //   // window.removeEventListener("pointermove", handlePointerMove);
+  //   // window.removeEventListener("pointerup", handlePointerUp);
+  // };
+
+ const handlePointerUp = (e) => {
+  dragging.current = false;
+  lastVector.current = null;
+
+  if (e.currentTarget.releasePointerCapture) {
+    e.currentTarget.releasePointerCapture(e.pointerId);
+  }
+};
+
+  // const handlePointerMove = (e) => {
+  //   if (!dragging.current) return;
+  //   const rect = containerRef.current.getBoundingClientRect();
+
+  //   // const a = getAngleFromEvent(e, rect);
+  //   // let diff = a - lastAngle.current;
+  //   // if (diff > 180) diff -= 360;
+  //   // if (diff < -180) diff += 360;
+  //   // setAngle((prev) => (prev + diff + 360) % 360);
+  //   // lastAngle.current = a;
+
+  //   const currentAngle = getAngleFromEvent(e, rect);
+  //   let diff = currentAngle - lastAngle.current;
+  //   if (diff > 180) diff -= 360;
+  //   if (diff < -180) diff += 360;
+  //   setAngle((prev) => (prev + diff + 360) % 360);
+  //   lastAngle.current = currentAngle;
+  // };
+
+const handlePointerMove = (e) => {
+  if (!dragging.current) return;
+
+  const { x, y } = getPoint(e);
+
+  const newVector = {
+    x: x - centerRef.current.x,
+    y: y - centerRef.current.y,
+  };
+
+  const v1 = lastVector.current;
+  const v2 = newVector;
+
+  if (!v1) {
+    lastVector.current = v2;
+    return;
+  }
+
+  const cross = v1.x * v2.y - v1.y * v2.x;
+  const dot = v1.x * v2.x + v1.y * v2.y;
+
+  const rotation = Math.atan2(cross, dot);
+
+  setAngle((prev) => prev + (rotation * 180) / Math.PI);
+
+  lastVector.current = newVector;
+};
 
   const handleMouseMove = (e) => {
     const img = imgRef.current;
@@ -921,7 +1030,7 @@ const Wheel = () => {
     // radii from the layout size, which does NOT change with rotation.
     const dist = Math.hypot(ux, uy);
 
-    // Use layout size (unaffected by transform) so radii do not drift
+    // Use layout size so radii do not drift
     const layoutRadius = img.clientWidth / 2;
 
     const multiRing = 0.24;
@@ -930,7 +1039,7 @@ const Wheel = () => {
     const middleORadius = layoutRadius * multiRing * 3;
     const outerORadius = layoutRadius * multiRing * 4;
 
-    // Outside the wheel or inside the hole -> nothing hovered
+    // Outside the wheel or inside the hole = nothing hovered
     if (dist < innerIRadius || dist >= outerORadius) {
       setHovered(null);
       return;
@@ -944,7 +1053,7 @@ const Wheel = () => {
       circle.find((emo) =>
         emo.start < emo.end
           ? deg >= emo.start && deg < emo.end
-          : deg >= emo.start || deg < emo.end
+          : deg >= emo.start || deg < emo.end,
       );
 
     let hoveredEmotion = null;
@@ -958,7 +1067,7 @@ const Wheel = () => {
     setHovered(hoveredEmotion || null);
   };
 
-    const handleClick = (e) => {
+  const handleClick = (e) => {
     if (!isMobile) return;
 
     const rect = containerRef.current.getBoundingClientRect();
@@ -993,7 +1102,7 @@ const Wheel = () => {
       circle.find((emo) =>
         emo.start < emo.end
           ? deg >= emo.start && deg < emo.end
-          : deg >= emo.start || deg < emo.end
+          : deg >= emo.start || deg < emo.end,
       );
 
     let hoveredEmotion = null;
@@ -1014,44 +1123,56 @@ const Wheel = () => {
     };
   }, []);
 
-    const tooltipData = isMobile ? mobileHovered : hovered;
+  const tooltipData = isMobile ? mobileHovered : hovered;
 
   return (
     <>
-    <div
-      ref={containerRef}
-      className="wheel-container"
-      onPointerDown={handlePointerDown}
-      onMouseMove={handleMouseMove}
-      onClick={handleClick}
-    >
-      <img
-        ref={imgRef}
-        src={wheelImg}
-        alt="Feelings Wheel"
-        draggable="false"
-        className="wheel-image"
-        style={{ transform: `rotate(${angle}deg)` }}
-      />
+      <div
+        ref={containerRef}
+        className="wheel-container"
+        onPointerDown={handlePointerDown}
+        onPointerUp={handlePointerUp}
+        // onMouseMove={handleMouseMove}
+        onPointerMove={handlePointerMove}
+        onPointerCancel={handlePointerUp}
+        onClick={handleClick}
+      >
+        <img
+          ref={imgRef}
+          src={wheelImg}
+          alt="Feelings Wheel"
+          draggable="false"
+          className="wheel-image"
+          style={{ transform: `rotate(${angle}deg)`}}
+        />
 
-      {tooltipData && (
-        <div className="tooltip">
-          <h3>{tooltipData.name}</h3>
-          <p>{tooltipData.description}</p>
-        </div>
-      )}
+        {tooltipData && (
+          <div className="tooltip">
+            <h3>{tooltipData.name}</h3>
+            <p>{tooltipData.description}</p>
+          </div>
+        )}
 
         <div id="how-to-use">
           <h1>How to Use</h1>
-          <p>A feelings wheel can be a helpful tool for identifying and naming emotions. To use, start at the center of the feelings wheel and then move more outward to more specific feeling words. Take a moment to reflect on which word feels most accurate. It can help to think about what happened, how your body feels, or what thoughts you're having. Using a feeling wheel regularly can help build emotional awareness and make it easier to express what you're feeling to yourself and others!</p>
+          <p>
+            A feelings wheel can be a helpful tool for identifying and naming
+            emotions. To use, start at the center of the feelings wheel and then
+            move more outward to more specific feeling words. Take a moment to
+            reflect on which word feels most accurate. It can help to think
+            about what happened, how your body feels, or what thoughts you're
+            having. Using a feeling wheel regularly can help build emotional
+            awareness and make it easier to express what you're feeling to
+            yourself and others!
+          </p>
 
-         <p>Feel free to check out our <a href="/emotional-checkin">Emotional Check-In Guide</a> for more help!</p>
+          <p>
+            Feel free to check out our{" "}
+            <a href="/emotional-checkin">Emotional Check-In Guide</a> for more
+            help!
+          </p>
+        </div>
       </div>
-
-    </div>
-
-  
-
     </>
   );
 };

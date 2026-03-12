@@ -40,17 +40,37 @@
   margin-top: 50px;
 }
 
+#how-to-use {
+  z-index: 1;
+}
+
 
 @media (max-width: 700px) {
+
+  /* I added touch-action, overflow, and overscroll-behavior, since that seems to be a common fix that can mess up mobile performance */
+
     .wheel-container {
         margin: 0 auto;
         max-width: min(80vw, 700px);
         touch-action: none;
+        position: relative;
+        overflow: hidden;
+        overscroll-behavior: none;
     }
 
+    /* added the extras here too to make sure the common fixes applied to both the container and the image */
     .wheel-image {
       margin-top: 65px;
       border-radius: 54px;
+      touch-action: none;
+      -webkit-user-drag: none;
+      -webkit-user-select: none;
+      user-select: none;
+      display: block;
+      -webkit-touch-callout: none;
+      pointer-events: none;
+      transition: none;
+      transform-origin: center;
     }
 
     .tooltip {
@@ -61,6 +81,7 @@
 
     #how-to-use {
         margin-top: 215px;
-        margin-bottom: 160px
+        margin-bottom: 160px;
+        z-index: 1;
     }
 }

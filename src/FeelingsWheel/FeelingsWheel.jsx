@@ -841,11 +841,8 @@ const Wheel = () => {
   const [mobileHovered, setMobileHovered] = useState(null);
   const [isMobile, setIsMobile] = useState(false);
 
-  // I added lastVector to track the last position of the pointer relative to the center of the wheel, which allows for smoother and more accurate rotation on mobile devices. The angle is calculated based on the change in the vector from the last position to the current position, rather than relying solely on the angle from the center to the pointer, which can be less stable on touch screens. But it didn't fix it
   const dragging = useRef(false);
   const lastAngle = useRef(0);
-  const lastVector = useRef(null);
-  const centerRef = useRef({ x: 0, y: 0 });
 
   //   check if user is on mobile
   useEffect(() => {
@@ -873,199 +870,103 @@ const Wheel = () => {
     return () => document.removeEventListener("click", handleOutsideClick);
   }, [isMobile]);
 
-  const getAngleFromEvent = (e, rect) => {
+  const getAngleFromEvent = (e) => {
+    const rect = containerRef.current.getBoundingClientRect();
     const cx = rect.left + rect.width / 2;
     const cy = rect.top + rect.height / 2;
 
-    // const x = (e.clientX ?? e.touches?.[0].clientX) - cx;
-    // const y = (e.clientY ?? e.touches?.[0].clientY) - cy;
-    // return (Math.atan2(y, x) * 180) / Math.PI;
+    const clientX = e.clientX ?? e.touches?.[0].clientX;
+    const clientY = e.clientY ?? e.touches?.[0].clientY;
 
-    const x = e.clientX - cx;
-    const y = e.clientY - cy;
-    return (Math.atan2(y, x) * 180) / Math.PI;
+    const x = clientX - cx;
+    const y = clientY - cy;
+
+    let angle = (Math.atan2(y, x) * 180) / Math.PI;
+    if (angle < 0) angle += 360;
+    return angle;
   };
 
-  const getPoint = (e) => {
-    if (e.touches && e.touches.length > 0) {
-      return {
-        x: e.touches[0].clientX,
-        y: e.touches[0].clientY,
-      };
-    }
-
-    return {
-      x: e.clientX,
-      y: e.clientY,
-    };
+  const handlePointerDown = (e) => {
+    e.preventDefault();
+    dragging.current = true;
+    lastAngle.current = getAngleFromEvent(e);
+    // Add global listeners
+    window.addEventListener("pointermove", handlePointerMove);
+    window.addEventListener("pointerup", handlePointerUp);
+    window.addEventListener("touchmove", handlePointerMove, { passive: false });
+    window.addEventListener("touchend", handlePointerUp);
+    setPointerCapture(e.pointerId);
   };
 
-// I tried a few different approaches in the handlePointer functions to improve mobile performance, thinking touching the screen is different than using a mouse. I incorporated the lastVector here, but still nothing. I commented out some old code for comparison
+  const handlePointerMove = (e) => {
+    if (!dragging.current) return;
+    e.preventDefault(); // prevent scrolling on mobile
 
+    const angleNow = getAngleFromEvent(e);
+    let delta = angleNow - lastAngle.current;
 
-  // const handlePointerDown = (e) => {
-  //   e.preventDefault();
+    // handle crossing 0/360 boundary
+    if (delta > 180) delta -= 360;
+    if (delta < -180) delta += 360;
 
-  //   e.target.setPointerCapture(e.pointerId); // for mobile stability
-
-  //   if (e.target.setPointerCapture) {
-  //     e.target.setPointerCapture(e.pointerId);
-  //   }
-
-  //   dragging.current = true;
-  //   const rect = containerRef.current.getBoundingClientRect();
-  //   lastAngle.current = getAngleFromEvent(e, rect);
-
-  //   window.addEventListener("pointermove", handlePointerMove);
-  //   window.addEventListener("pointerup", handlePointerUp);
-  // };
-
-const handlePointerDown = (e) => {
-  e.preventDefault();
-  e.currentTarget.setPointerCapture(e.pointerId);
-
-  dragging.current = true;
-
-  const rect = containerRef.current.getBoundingClientRect();
-
-  centerRef.current = {
-    x: rect.left + rect.width / 2,
-    y: rect.top + rect.height / 2,
+    setAngle((prev) => (prev + delta + 360) % 360);
+    lastAngle.current = angleNow;
   };
 
-  const { x, y } = getPoint(e);
-
-  lastVector.current = {
-    x: x - centerRef.current.x,
-    y: y - centerRef.current.y,
-  };
-};
-
-  // const handlePointerUp = (e) => {
-  //   dragging.current = false;
-
-  //   // for mobile: release capture
-  //   if (e.target.releasePointerCapture) {
-  //     e.target.releasePointerCapture(e.pointerId);
-  //   }
-
-  //   // window.removeEventListener("pointermove", handlePointerMove);
-  //   // window.removeEventListener("pointerup", handlePointerUp);
-  // };
-
- const handlePointerUp = (e) => {
-  dragging.current = false;
-  lastVector.current = null;
-
-  if (e.currentTarget.releasePointerCapture) {
-    e.currentTarget.releasePointerCapture(e.pointerId);
-  }
-};
-
-  // const handlePointerMove = (e) => {
-  //   if (!dragging.current) return;
-  //   const rect = containerRef.current.getBoundingClientRect();
-
-  //   // const a = getAngleFromEvent(e, rect);
-  //   // let diff = a - lastAngle.current;
-  //   // if (diff > 180) diff -= 360;
-  //   // if (diff < -180) diff += 360;
-  //   // setAngle((prev) => (prev + diff + 360) % 360);
-  //   // lastAngle.current = a;
-
-  //   const currentAngle = getAngleFromEvent(e, rect);
-  //   let diff = currentAngle - lastAngle.current;
-  //   if (diff > 180) diff -= 360;
-  //   if (diff < -180) diff += 360;
-  //   setAngle((prev) => (prev + diff + 360) % 360);
-  //   lastAngle.current = currentAngle;
-  // };
-
-const handlePointerMove = (e) => {
-  if (!dragging.current) return;
-
-  const { x, y } = getPoint(e);
-
-  const newVector = {
-    x: x - centerRef.current.x,
-    y: y - centerRef.current.y,
+  const handlePointerUp = (e) => {
+    dragging.current = false;
+    e.target.releasePointerCapture(e.pointerId);
   };
 
-  const v1 = lastVector.current;
-  const v2 = newVector;
+  
+const handleHover = (e) => {
+  if (dragging.current) return; // skip hover while dragging
+  const img = imgRef.current;
+  if (!img) return;
 
-  if (!v1) {
-    lastVector.current = v2;
+  const rect = img.getBoundingClientRect();
+  const cx = rect.left + rect.width / 2;
+  const cy = rect.top + rect.height / 2;
+
+  const clientX = e.clientX ?? e.touches?.[0].clientX;
+  const clientY = e.clientY ?? e.touches?.[0].clientY;
+
+  const dx = clientX - cx;
+  const dy = clientY - cy;
+
+  const rad = (-angle * Math.PI) / 180;
+  const ux = dx * Math.cos(rad) - dy * Math.sin(rad);
+  const uy = dx * Math.sin(rad) + dy * Math.cos(rad);
+
+  const dist = Math.hypot(ux, uy);
+  const layoutRadius = img.clientWidth / 2;
+  const multiRing = 0.24;
+  const innerIRadius = layoutRadius * multiRing * 1;
+  const innerORadius = layoutRadius * multiRing * 2;
+  const middleORadius = layoutRadius * multiRing * 3;
+  const outerORadius = layoutRadius * multiRing * 4;
+
+  if (dist < innerIRadius || dist >= outerORadius) {
+    setHovered(null);
     return;
   }
 
-  const cross = v1.x * v2.y - v1.y * v2.x;
-  const dot = v1.x * v2.x + v1.y * v2.y;
+  let deg = (Math.atan2(uy, ux) * 180) / Math.PI;
+  if (deg < 0) deg += 360;
 
-  const rotation = Math.atan2(cross, dot);
+  const hit = (circle) =>
+    circle.find((emo) =>
+      emo.start < emo.end ? deg >= emo.start && deg < emo.end : deg >= emo.start || deg < emo.end
+    );
 
-  setAngle((prev) => prev + (rotation * 180) / Math.PI);
+  let hoveredEmotion = null;
+  if (dist >= innerIRadius && dist < innerORadius) hoveredEmotion = hit(innerCircle);
+  else if (dist >= innerORadius && dist < middleORadius) hoveredEmotion = hit(middleCircle);
+  else if (dist >= middleORadius && dist < outerORadius) hoveredEmotion = hit(outerCircle);
 
-  lastVector.current = newVector;
+  setHovered(hoveredEmotion || null);
 };
 
-  const handleMouseMove = (e) => {
-    const img = imgRef.current;
-    if (!img) return;
-
-    // Center from the visual rect (this stays the center even when rotated)
-    const rect = img.getBoundingClientRect();
-    const cx = rect.left + rect.width / 2;
-    const cy = rect.top + rect.height / 2;
-
-    // Mouse vector in screen pixels
-    const dx = e.clientX - cx;
-    const dy = e.clientY - cy;
-
-    const rad = (-angle * Math.PI) / 180; // inverse rotation
-    const ux = dx * Math.cos(rad) - dy * Math.sin(rad);
-    const uy = dx * Math.sin(rad) + dy * Math.cos(rad);
-
-    // Distance in screen pixels from the center, compare it to
-    // radii from the layout size, which does NOT change with rotation.
-    const dist = Math.hypot(ux, uy);
-
-    // Use layout size so radii do not drift
-    const layoutRadius = img.clientWidth / 2;
-
-    const multiRing = 0.24;
-    const innerIRadius = layoutRadius * multiRing * 1;
-    const innerORadius = layoutRadius * multiRing * 2;
-    const middleORadius = layoutRadius * multiRing * 3;
-    const outerORadius = layoutRadius * multiRing * 4;
-
-    // Outside the wheel or inside the hole = nothing hovered
-    if (dist < innerIRadius || dist >= outerORadius) {
-      setHovered(null);
-      return;
-    }
-
-    // Angle in the upright wheel's coordinates (0 degrees means it's pointing right, CCW positive)
-    let deg = (Math.atan2(uy, ux) * 180) / Math.PI;
-    if (deg < 0) deg += 360;
-
-    const hit = (circle) =>
-      circle.find((emo) =>
-        emo.start < emo.end
-          ? deg >= emo.start && deg < emo.end
-          : deg >= emo.start || deg < emo.end,
-      );
-
-    let hoveredEmotion = null;
-    if (dist >= innerIRadius && dist < innerORadius)
-      hoveredEmotion = hit(innerCircle);
-    else if (dist >= innerORadius && dist < middleORadius)
-      hoveredEmotion = hit(middleCircle);
-    else if (dist >= middleORadius && dist < outerORadius)
-      hoveredEmotion = hit(outerCircle);
-
-    setHovered(hoveredEmotion || null);
-  };
 
   const handleClick = (e) => {
     if (!isMobile) return;
@@ -1116,6 +1017,42 @@ const handlePointerMove = (e) => {
     setMobileHovered(hoveredEmotion || null);
   };
 
+
+  const handleTouch = (e) => {
+  const touch = e.touches[0];
+  const img = imgRef.current;
+  if (!img) return;
+
+  const rect = img.getBoundingClientRect();
+  const cx = rect.left + rect.width / 2;
+  const cy = rect.top + rect.height / 2;
+
+  const dx = touch.clientX - cx;
+  const dy = touch.clientY - cy;
+
+  const dist = Math.hypot(dx, dy);
+  if (dist < innerIRadius || dist >= outerORadius) {
+    setMobileHovered(null);
+    return;
+  }
+
+  let deg = (Math.atan2(dy, dx) * 180) / Math.PI;
+  if (deg < 0) deg += 360;
+
+  const hit = (circle) =>
+    circle.find((emo) =>
+      emo.start < emo.end ? deg >= emo.start && deg < emo.end : deg >= emo.start || deg < emo.end
+    );
+
+  let hoveredEmotion = null;
+  if (dist >= innerIRadius && dist < innerORadius) hoveredEmotion = hit(innerCircle);
+  else if (dist >= innerORadius && dist < middleORadius) hoveredEmotion = hit(middleCircle);
+  else if (dist >= middleORadius && dist < outerORadius) hoveredEmotion = hit(outerCircle);
+
+  setMobileHovered(hoveredEmotion || null);
+};
+
+
   useEffect(() => {
     return () => {
       window.removeEventListener("pointermove", handlePointerMove);
@@ -1132,9 +1069,11 @@ const handlePointerMove = (e) => {
         className="wheel-container"
         onPointerDown={handlePointerDown}
         onPointerUp={handlePointerUp}
-        // onMouseMove={handleMouseMove}
         onPointerMove={handlePointerMove}
         onPointerCancel={handlePointerUp}
+        onMouseMove={isMobile ? undefined : handleHover}
+        onTouchStart={handleTouch}
+        onTouchMove={handleTouch}
         onClick={handleClick}
       >
         <img
@@ -1143,7 +1082,7 @@ const handlePointerMove = (e) => {
           alt="Feelings Wheel"
           draggable="false"
           className="wheel-image"
-          style={{ transform: `rotate(${angle}deg)`}}
+          style={{ transform: `rotate(${angle}deg)` }}
         />
 
         {tooltipData && (

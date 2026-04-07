@@ -857,14 +857,13 @@ const Wheel = () => {
     if (!isMobile) return;
 
     const handleOutsideClick = (e) => {
-      if (!containerRef.current.contains(e.target)) {
+      if (containerRef.current && !containerRef.current.contains(e.target)) {
         setMobileHovered(null);
       }
     };
-    document.addEventListener("click", handleOutsideClick);
-    return () => document.removeEventListener("click", handleOutsideClick);
+    window.addEventListener("click", handleOutsideClick);
+    return () => window.removeEventListener("click", handleOutsideClick);
   }, [isMobile]);
-
 
   const getAngleFromEvent = (e, rect) => {
     const cx = rect.left + rect.width / 2;
@@ -875,10 +874,13 @@ const Wheel = () => {
   };
 
   const handlePointerDown = (e) => {
-    e.preventDefault();
+    console.log("NEW POINTER DOWN CODE");
+    if (!isMobile) e.preventDefault();
+
     dragging.current = true;
     const rect = containerRef.current.getBoundingClientRect();
     lastAngle.current = getAngleFromEvent(e, rect);
+
     window.addEventListener("pointermove", handlePointerMove);
     window.addEventListener("pointerup", handlePointerUp);
   };
@@ -900,75 +902,32 @@ const Wheel = () => {
     lastAngle.current = a;
   };
 
-  const handleMouseMove = (e) => {
+  const findEmotionAtCoords = (e) => {
     const img = imgRef.current;
-    if (!img) return;
+    if (!img) return null;
 
-    // Center from the visual rect (this stays the center even when rotated)
     const rect = img.getBoundingClientRect();
+
+    const clientX =
+      e.clientX ??
+      e.nativeEvent?.touches?.[0]?.clientX ??
+      e.nativeEvent?.changedTouches?.[0]?.clientX;
+    const clientY =
+      e.clientY ??
+      e.nativeEvent?.touches?.[0]?.clientY ??
+      e.nativeEvent?.changedTouches?.[0]?.clientY;
+
+    if (clientX === undefined || clientY === undefined) return null;
+
+    // find center of wheel
     const cx = rect.left + rect.width / 2;
     const cy = rect.top + rect.height / 2;
 
-    // Mouse vector in screen pixels
-    const dx = e.clientX - cx;
-    const dy = e.clientY - cy;
+    // calculate distance from center
+    const dx = clientX - cx;
+    const dy = clientY - cy;
 
-    const rad = (-angle * Math.PI) / 180; // inverse rotation
-    const ux = dx * Math.cos(rad) - dy * Math.sin(rad);
-    const uy = dx * Math.sin(rad) + dy * Math.cos(rad);
-
-    // Distance in screen pixels from the center, compare it to
-    // radii from the layout size, which does NOT change with rotation.
-    const dist = Math.hypot(ux, uy);
-
-    // Use layout size (unaffected by transform) so radii do not drift
-    const layoutRadius = img.clientWidth / 2;
-
-    const multiRing = 0.24;
-    const innerIRadius = layoutRadius * multiRing * 1;
-    const innerORadius = layoutRadius * multiRing * 2;
-    const middleORadius = layoutRadius * multiRing * 3;
-    const outerORadius = layoutRadius * multiRing * 4;
-
-    // Outside the wheel or inside the hole -> nothing hovered
-    if (dist < innerIRadius || dist >= outerORadius) {
-      setHovered(null);
-      return;
-    }
-
-    // Angle in the upright wheel's coordinates (0 degrees means it's pointing right, CCW positive)
-    let deg = (Math.atan2(uy, ux) * 180) / Math.PI;
-    if (deg < 0) deg += 360;
-
-    const hit = (circle) =>
-      circle.find((emo) =>
-        emo.start < emo.end
-          ? deg >= emo.start && deg < emo.end
-          : deg >= emo.start || deg < emo.end
-      );
-
-    let hoveredEmotion = null;
-    if (dist >= innerIRadius && dist < innerORadius)
-      hoveredEmotion = hit(innerCircle);
-    else if (dist >= innerORadius && dist < middleORadius)
-      hoveredEmotion = hit(middleCircle);
-    else if (dist >= middleORadius && dist < outerORadius)
-      hoveredEmotion = hit(outerCircle);
-
-    setHovered(hoveredEmotion || null);
-  };
-
-    const handleClick = (e) => {
-    if (!isMobile) return;
-
-    const rect = containerRef.current.getBoundingClientRect();
-    const img = imgRef.current;
-    if (!img) return;
-
-    const cx = rect.left + rect.width / 2;
-    const cy = rect.top + rect.height / 2;
-    const dx = (e.clientX ?? e.touches?.[0].clientX) - cx;
-    const dy = (e.clientY ?? e.touches?.[0].clientY) - cy;
+    // adjust calculation for wheel rotation
     const rad = (-angle * Math.PI) / 180;
     const ux = dx * Math.cos(rad) - dy * Math.sin(rad);
     const uy = dx * Math.sin(rad) + dy * Math.cos(rad);
@@ -976,15 +935,15 @@ const Wheel = () => {
 
     const layoutRadius = img.clientWidth / 2;
     const multiRing = 0.24;
-    const innerIRadius = layoutRadius * multiRing * 1;
+    const innerIRadius = layoutRadius * multiRing;
     const innerORadius = layoutRadius * multiRing * 2;
     const middleORadius = layoutRadius * multiRing * 3;
     const outerORadius = layoutRadius * multiRing * 4;
 
-    if (dist < innerIRadius || dist >= outerORadius) {
-      setMobileHovered(null);
-      return;
-    }
+    if (dist < innerIRadius || dist >= outerORadius) return null;
+
+    // const iR = layoutRadius * multiRing;
+    // if (dist < iR || dist >= layoutRadius) return null;
 
     let deg = (Math.atan2(uy, ux) * 180) / Math.PI;
     if (deg < 0) deg += 360;
@@ -993,65 +952,191 @@ const Wheel = () => {
       circle.find((emo) =>
         emo.start < emo.end
           ? deg >= emo.start && deg < emo.end
-          : deg >= emo.start || deg < emo.end
+          : deg >= emo.start || deg < emo.end,
       );
 
-    let hoveredEmotion = null;
-    if (dist >= innerIRadius && dist < innerORadius)
-      hoveredEmotion = hit(innerCircle);
-    else if (dist >= innerORadius && dist < middleORadius)
-      hoveredEmotion = hit(middleCircle);
-    else if (dist >= middleORadius && dist < outerORadius)
-      hoveredEmotion = hit(outerCircle);
-
-    setMobileHovered(hoveredEmotion || null);
+    if (dist < innerORadius) return hit(innerCircle);
+    if (dist < middleORadius) return hit(middleCircle);
+    return hit(outerCircle);
   };
 
-  useEffect(() => {
-    return () => {
-      window.removeEventListener("pointermove", handlePointerMove);
-      window.removeEventListener("pointerup", handlePointerUp);
-    };
-  }, []);
+  const handleMouseMove = (e) => {
+    // const img = imgRef.current;
+    // if (!img) return;
 
-    const tooltipData = isMobile ? mobileHovered : hovered;
+    // // Center from the visual rect (this stays the center even when rotated)
+    // const rect = img.getBoundingClientRect();
+    // const cx = rect.left + rect.width / 2;
+    // const cy = rect.top + rect.height / 2;
+
+    // // Mouse vector in screen pixels
+    // const dx = e.clientX - cx;
+    // const dy = e.clientY - cy;
+
+    // const rad = (-angle * Math.PI) / 180; // inverse rotation
+    // const ux = dx * Math.cos(rad) - dy * Math.sin(rad);
+    // const uy = dx * Math.sin(rad) + dy * Math.cos(rad);
+
+    // // Distance in screen pixels from the center, compare it to
+    // // radii from the layout size, which does NOT change with rotation.
+    // const dist = Math.hypot(ux, uy);
+
+    // // Use layout size (unaffected by transform) so radii do not drift
+    // const layoutRadius = img.clientWidth / 2;
+
+    // const multiRing = 0.24;
+    // const innerIRadius = layoutRadius * multiRing * 1;
+    // const innerORadius = layoutRadius * multiRing * 2;
+    // const middleORadius = layoutRadius * multiRing * 3;
+    // const outerORadius = layoutRadius * multiRing * 4;
+
+    // // Outside the wheel or inside the hole -> nothing hovered
+    // if (dist < innerIRadius || dist >= outerORadius) {
+    //   setHovered(null);
+    //   return;
+    // }
+
+    // // Angle in the upright wheel's coordinates (0 degrees means it's pointing right, CCW positive)
+    // let deg = (Math.atan2(uy, ux) * 180) / Math.PI;
+    // if (deg < 0) deg += 360;
+
+    // const hit = (circle) =>
+    //   circle.find((emo) =>
+    //     emo.start < emo.end
+    //       ? deg >= emo.start && deg < emo.end
+    //       : deg >= emo.start || deg < emo.end,
+    //   );
+
+    // let hoveredEmotion = null;
+    // if (dist >= innerIRadius && dist < innerORadius)
+    //   hoveredEmotion = hit(innerCircle);
+    // else if (dist >= innerORadius && dist < middleORadius)
+    //   hoveredEmotion = hit(middleCircle);
+    // else if (dist >= middleORadius && dist < outerORadius)
+    //   hoveredEmotion = hit(outerCircle);
+
+    // setHovered(hoveredEmotion || null);
+    if (!isMobile) return;
+    setMobileHovered(findEmotionAtCoords(e));
+  };
+
+  const handleClick = (e) => {
+    if (!isMobile) return;
+
+    e.stopPropagation();
+
+    const clickedEmotion = findEmotionAtCoords(e);
+    setMobileHovered(clickedEmotion);
+    console.log(clickedEmotion);
+
+    // const rect = containerRef.current.getBoundingClientRect();
+    // const img = imgRef.current;
+    // if (!img) return;
+
+    // const cx = rect.left + rect.width / 2;
+    // const cy = rect.top + rect.height / 2;
+    // const dx = (e.clientX ?? e.touches?.[0].clientX) - cx;
+    // const dy = (e.clientY ?? e.touches?.[0].clientY) - cy;
+    // const rad = (-angle * Math.PI) / 180;
+    // const ux = dx * Math.cos(rad) - dy * Math.sin(rad);
+    // const uy = dx * Math.sin(rad) + dy * Math.cos(rad);
+    // const dist = Math.hypot(ux, uy);
+
+    // const layoutRadius = img.clientWidth / 2;
+    // const multiRing = 0.24;
+    // const innerIRadius = layoutRadius * multiRing * 1;
+    // const innerORadius = layoutRadius * multiRing * 2;
+    // const middleORadius = layoutRadius * multiRing * 3;
+    // const outerORadius = layoutRadius * multiRing * 4;
+
+    // if (dist < innerIRadius || dist >= outerORadius) {
+    //   setMobileHovered(null);
+    //   return;
+    // }
+
+    // let deg = (Math.atan2(uy, ux) * 180) / Math.PI;
+    // if (deg < 0) deg += 360;
+
+    // const hit = (circle) =>
+    //   circle.find((emo) =>
+    //     emo.start < emo.end
+    //       ? deg >= emo.start && deg < emo.end
+    //       : deg >= emo.start || deg < emo.end,
+    //   );
+
+    // let hoveredEmotion = null;
+    // if (dist >= innerIRadius && dist < innerORadius)
+    //   hoveredEmotion = hit(innerCircle);
+    // else if (dist >= innerORadius && dist < middleORadius)
+    //   hoveredEmotion = hit(middleCircle);
+    // else if (dist >= middleORadius && dist < outerORadius)
+    //   hoveredEmotion = hit(outerCircle);
+
+    // setMobileHovered(hoveredEmotion || null);
+  };
+
+  // useEffect(() => {
+  //   return () => {
+  //     window.removeEventListener("pointermove", handlePointerMove);
+  //     window.removeEventListener("pointerup", handlePointerUp);
+  //   };
+  // }, []);
+
+  const tooltipData = isMobile ? mobileHovered : hovered;
 
   return (
     <>
-    <div
-      ref={containerRef}
-      className="wheel-container"
-      onPointerDown={handlePointerDown}
-      onMouseMove={handleMouseMove}
-      onClick={handleClick}
-    >
-      <img
-        ref={imgRef}
-        src={wheelImg}
-        alt="Feelings Wheel"
-        draggable="false"
-        className="wheel-image"
-        style={{ transform: `rotate(${angle}deg)` }}
-      />
+      <div
+        ref={containerRef}
+        className="wheel-container"
+        onPointerDown={handlePointerDown}
+        onMouseMove={handleMouseMove}
+        onClick={handleClick}
+      >
+        <img
+          ref={imgRef}
+          src={wheelImg}
+          alt="Feelings Wheel"
+          draggable="false"
+          className="wheel-image"
+          style={{ transform: `rotate(${angle}deg)` }}
+        />
 
-      {tooltipData && (
-        <div className="tooltip">
-          <h3>{tooltipData.name}</h3>
-          <p>{tooltipData.description}</p>
-        </div>
-      )}
+        {tooltipData && (
+          <div className="tooltip" onClick={(e) => e.stopPropagation()}>
+            {isMobile && (
+              <button
+                className="close-btn"
+                onClick={() => setMobileHovered(null)}
+              >
+                ✕
+              </button>
+            )}
+            <h3>{tooltipData.name}</h3>
+            <p>{tooltipData.description}</p>
+          </div>
+        )}
 
         <div id="how-to-use">
           <h1>How to Use</h1>
-          <p>A feelings wheel can be a helpful tool for identifying and naming emotions. To use, start at the center of the feelings wheel and then move more outward to more specific feeling words. Take a moment to reflect on which word feels most accurate. It can help to think about what happened, how your body feels, or what thoughts you're having. Using a feeling wheel regularly can help build emotional awareness and make it easier to express what you're feeling to yourself and others!</p>
+          <p>
+            A feelings wheel can be a helpful tool for identifying and naming
+            emotions. To use, start at the center of the feelings wheel and then
+            move more outward to more specific feeling words. Take a moment to
+            reflect on which word feels most accurate. It can help to think
+            about what happened, how your body feels, or what thoughts you're
+            having. Using a feeling wheel regularly can help build emotional
+            awareness and make it easier to express what you're feeling to
+            yourself and others!
+          </p>
 
-         <p>Feel free to check out our <a href="/emotional-checkin">Emotional Check-In Guide</a> for more help!</p>
+          <p>
+            Feel free to check out our{" "}
+            <a href="/emotional-checkin">Emotional Check-In Guide</a> for more
+            help!
+          </p>
+        </div>
       </div>
-
-    </div>
-
-  
-
     </>
   );
 };

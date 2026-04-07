@@ -866,41 +866,63 @@ const Wheel = () => {
   }, [isMobile]);
 
   const getAngleFromEvent = (e, rect) => {
-    const cx = rect.left + rect.width / 2;
-    const cy = rect.top + rect.height / 2;
-    const x = (e.clientX ?? e.touches?.[0].clientX) - cx;
-    const y = (e.clientY ?? e.touches?.[0].clientY) - cy;
-    return (Math.atan2(y, x) * 180) / Math.PI;
+    const clientX = e.pageX ?? e.touches?.[0]?.pageX;
+    const clientY = e.pageY ?? e.touches?.[0]?.pageY;
+
+    const touch = e.touches ? e.touches[0] : e;
+    const pageX = touch.pageX;
+    const pageY = touch.pageY;
+
+    // including window scroll offset to get absolute position of wheel
+    const centerX = rect.left + window.scrollX + rect.width / 2;
+    const centerY = rect.top + window.scrollY + rect.height / 2;
+
+    // const x = (e.clientX ?? e.touches?.[0].clientX) - cx;
+    // const y = (e.clientY ?? e.touches?.[0].clientY) - cy;
+
+    const dx = pageX - centerX;
+    const dy = pageY - centerY;
+
+    return (Math.atan2(dy, dx) * 180) / Math.PI;
   };
 
   const handlePointerDown = (e) => {
-    console.log("NEW POINTER DOWN CODE");
     if (!isMobile) e.preventDefault();
 
     dragging.current = true;
     const rect = containerRef.current.getBoundingClientRect();
     lastAngle.current = getAngleFromEvent(e, rect);
 
-    window.addEventListener("pointermove", handlePointerMove);
-    window.addEventListener("pointerup", handlePointerUp);
+    e.currentTarget.setPointerCapture(e.pointerId);
   };
 
   const handlePointerUp = () => {
     dragging.current = false;
-    window.removeEventListener("pointermove", handlePointerMove);
-    window.removeEventListener("pointerup", handlePointerUp);
+    e.currentTarget.releasePointerCapture(e.pointerId);
   };
 
-  const handlePointerMove = (e) => {
-    if (!dragging.current) return;
-    const rect = containerRef.current.getBoundingClientRect();
+const handlePointerMove = (e) => {
+  const rect = containerRef.current.getBoundingClientRect();
+
+  if (dragging.current) {
     const a = getAngleFromEvent(e, rect);
     let diff = a - lastAngle.current;
+
     if (diff > 180) diff -= 360;
     if (diff < -180) diff += 360;
-    setAngle((prev) => (prev + diff + 360) % 360);
+
+    setAngle((prev) => prev + diff);
     lastAngle.current = a;
-  };
+    
+    setHovered(null); 
+    return;
+  }
+
+  if (!isMobile) {
+    const emotion = findEmotionAtCoords(e);
+    setHovered(emotion);
+  }
+};
 
   const findEmotionAtCoords = (e) => {
     const img = imgRef.current;
@@ -962,7 +984,8 @@ const Wheel = () => {
 
   const handleMouseMove = (e) => {
     if (!isMobile) return;
-    setMobileHovered(findEmotionAtCoords(e));
+    // setMobileHovered(findEmotionAtCoords(e));
+    setHovered(findEmotionAtCoords(e));
   };
 
   const handleClick = (e) => {
@@ -983,6 +1006,9 @@ const Wheel = () => {
         ref={containerRef}
         className="wheel-container"
         onPointerDown={handlePointerDown}
+        onPointerMove={handlePointerMove}
+        onPointerUp={handlePointerUp}
+        onPointerCancel={handlePointerUp}
         onMouseMove={handleMouseMove}
         onClick={handleClick}
       >

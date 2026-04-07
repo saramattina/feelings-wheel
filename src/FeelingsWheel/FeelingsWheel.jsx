@@ -961,61 +961,6 @@ const Wheel = () => {
   };
 
   const handleMouseMove = (e) => {
-    // const img = imgRef.current;
-    // if (!img) return;
-
-    // // Center from the visual rect (this stays the center even when rotated)
-    // const rect = img.getBoundingClientRect();
-    // const cx = rect.left + rect.width / 2;
-    // const cy = rect.top + rect.height / 2;
-
-    // // Mouse vector in screen pixels
-    // const dx = e.clientX - cx;
-    // const dy = e.clientY - cy;
-
-    // const rad = (-angle * Math.PI) / 180; // inverse rotation
-    // const ux = dx * Math.cos(rad) - dy * Math.sin(rad);
-    // const uy = dx * Math.sin(rad) + dy * Math.cos(rad);
-
-    // // Distance in screen pixels from the center, compare it to
-    // // radii from the layout size, which does NOT change with rotation.
-    // const dist = Math.hypot(ux, uy);
-
-    // // Use layout size (unaffected by transform) so radii do not drift
-    // const layoutRadius = img.clientWidth / 2;
-
-    // const multiRing = 0.24;
-    // const innerIRadius = layoutRadius * multiRing * 1;
-    // const innerORadius = layoutRadius * multiRing * 2;
-    // const middleORadius = layoutRadius * multiRing * 3;
-    // const outerORadius = layoutRadius * multiRing * 4;
-
-    // // Outside the wheel or inside the hole -> nothing hovered
-    // if (dist < innerIRadius || dist >= outerORadius) {
-    //   setHovered(null);
-    //   return;
-    // }
-
-    // // Angle in the upright wheel's coordinates (0 degrees means it's pointing right, CCW positive)
-    // let deg = (Math.atan2(uy, ux) * 180) / Math.PI;
-    // if (deg < 0) deg += 360;
-
-    // const hit = (circle) =>
-    //   circle.find((emo) =>
-    //     emo.start < emo.end
-    //       ? deg >= emo.start && deg < emo.end
-    //       : deg >= emo.start || deg < emo.end,
-    //   );
-
-    // let hoveredEmotion = null;
-    // if (dist >= innerIRadius && dist < innerORadius)
-    //   hoveredEmotion = hit(innerCircle);
-    // else if (dist >= innerORadius && dist < middleORadius)
-    //   hoveredEmotion = hit(middleCircle);
-    // else if (dist >= middleORadius && dist < outerORadius)
-    //   hoveredEmotion = hit(outerCircle);
-
-    // setHovered(hoveredEmotion || null);
     if (!isMobile) return;
     setMobileHovered(findEmotionAtCoords(e));
   };
@@ -1028,59 +973,7 @@ const Wheel = () => {
     const clickedEmotion = findEmotionAtCoords(e);
     setMobileHovered(clickedEmotion);
     console.log(clickedEmotion);
-
-    // const rect = containerRef.current.getBoundingClientRect();
-    // const img = imgRef.current;
-    // if (!img) return;
-
-    // const cx = rect.left + rect.width / 2;
-    // const cy = rect.top + rect.height / 2;
-    // const dx = (e.clientX ?? e.touches?.[0].clientX) - cx;
-    // const dy = (e.clientY ?? e.touches?.[0].clientY) - cy;
-    // const rad = (-angle * Math.PI) / 180;
-    // const ux = dx * Math.cos(rad) - dy * Math.sin(rad);
-    // const uy = dx * Math.sin(rad) + dy * Math.cos(rad);
-    // const dist = Math.hypot(ux, uy);
-
-    // const layoutRadius = img.clientWidth / 2;
-    // const multiRing = 0.24;
-    // const innerIRadius = layoutRadius * multiRing * 1;
-    // const innerORadius = layoutRadius * multiRing * 2;
-    // const middleORadius = layoutRadius * multiRing * 3;
-    // const outerORadius = layoutRadius * multiRing * 4;
-
-    // if (dist < innerIRadius || dist >= outerORadius) {
-    //   setMobileHovered(null);
-    //   return;
-    // }
-
-    // let deg = (Math.atan2(uy, ux) * 180) / Math.PI;
-    // if (deg < 0) deg += 360;
-
-    // const hit = (circle) =>
-    //   circle.find((emo) =>
-    //     emo.start < emo.end
-    //       ? deg >= emo.start && deg < emo.end
-    //       : deg >= emo.start || deg < emo.end,
-    //   );
-
-    // let hoveredEmotion = null;
-    // if (dist >= innerIRadius && dist < innerORadius)
-    //   hoveredEmotion = hit(innerCircle);
-    // else if (dist >= innerORadius && dist < middleORadius)
-    //   hoveredEmotion = hit(middleCircle);
-    // else if (dist >= middleORadius && dist < outerORadius)
-    //   hoveredEmotion = hit(outerCircle);
-
-    // setMobileHovered(hoveredEmotion || null);
   };
-
-  // useEffect(() => {
-  //   return () => {
-  //     window.removeEventListener("pointermove", handlePointerMove);
-  //     window.removeEventListener("pointerup", handlePointerUp);
-  //   };
-  // }, []);
 
   const tooltipData = isMobile ? mobileHovered : hovered;
 

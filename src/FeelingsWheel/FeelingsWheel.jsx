@@ -3,6 +3,7 @@
 import { useRef, useState, useEffect } from "react";
 import wheelImg from "../assets/FeelingsWheel.png";
 import "./FeelingsWheel.css";
+import EmotionalCheckIn from "../EmotionalCheckIn/EmotionalCheckIn";
 
 const innerCircle = [
   {

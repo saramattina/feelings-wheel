@@ -1,6 +1,6 @@
 /* Credit goes to Dylan Tai for some of this code! */
 
-.wheel-container {
+.page-wrapper {
   position: relative;
   display: inline-flex;
   justify-content: center;
@@ -42,13 +42,14 @@
 }
 
 @media (max-width: 700px) {
-  .wheel-container {
+  .page-wrapper {
     margin: 0 auto;
     max-width: min(80vw, 700px);
     overflow: hidden;
     touch-action: none;
     -webkit-user-drag: none;
     -webkit-tap-highlight-color: transparent;
+    user-select: none;
   }
 
   .wheel-image {
@@ -58,12 +59,12 @@
 
   .tooltip {
     left: auto;
-    top: 43%;
+    top: 40%;
     max-width: 69vw;
   }
 
   #how-to-use {
-    margin-top: 237px;
+    margin-top: 200px;
     margin-bottom: 160px;
   }
 

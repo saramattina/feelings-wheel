@@ -869,60 +869,60 @@ const Wheel = () => {
     const clientX = e.pageX ?? e.touches?.[0]?.pageX;
     const clientY = e.pageY ?? e.touches?.[0]?.pageY;
 
-    const touch = e.touches ? e.touches[0] : e;
-    const pageX = touch.pageX;
-    const pageY = touch.pageY;
+    const centerX = rect.left + rect.width / 2;
+    const centerY = rect.top + rect.height / 2;
 
-    // including window scroll offset to get absolute position of wheel
-    const centerX = rect.left + window.scrollX + rect.width / 2;
-    const centerY = rect.top + window.scrollY + rect.height / 2;
-
-    // const x = (e.clientX ?? e.touches?.[0].clientX) - cx;
-    // const y = (e.clientY ?? e.touches?.[0].clientY) - cy;
-
-    const dx = pageX - centerX;
-    const dy = pageY - centerY;
+    const dx = clientX - centerX;
+    const dy = clientY - centerY;
 
     return (Math.atan2(dy, dx) * 180) / Math.PI;
   };
 
   const handlePointerDown = (e) => {
-    if (!isMobile) e.preventDefault();
+    // if (!isMobile) e.preventDefault();
+    containerRef.current.style.touchAction = "none";
 
     dragging.current = true;
     const rect = containerRef.current.getBoundingClientRect();
     lastAngle.current = getAngleFromEvent(e, rect);
 
-    e.currentTarget.setPointerCapture(e.pointerId);
+    if (e.pointerId !== undefined) {
+      e.currentTarget.setPointerCapture(e.pointerId);
+    }
   };
 
   const handlePointerUp = () => {
     dragging.current = false;
-    e.currentTarget.releasePointerCapture(e.pointerId);
+    // e.currentTarget.releasePointerCapture(e.pointerId);
+    if (
+      e.pointerId !== undefined &&
+      e.currentTarget.hasPointerCapture(e.pointerId)
+    ) {
+      e.currentTarget.releasePointerCapture(e.pointerId);
+    }
   };
 
-const handlePointerMove = (e) => {
-  const rect = containerRef.current.getBoundingClientRect();
+  const handlePointerMove = (e) => {
+    if (!dragging.current) {
+      if (!isMobile) {
+        setHovered(findEmotionAtCoords(e));
+      }
+      return;
+    }
 
-  if (dragging.current) {
+    const rect = containerRef.current.getBoundingClientRect();
     const a = getAngleFromEvent(e, rect);
     let diff = a - lastAngle.current;
 
+    // This is the 180/-180deg fix
     if (diff > 180) diff -= 360;
     if (diff < -180) diff += 360;
 
     setAngle((prev) => prev + diff);
     lastAngle.current = a;
-    
-    setHovered(null); 
-    return;
-  }
 
-  if (!isMobile) {
-    const emotion = findEmotionAtCoords(e);
-    setHovered(emotion);
-  }
-};
+    if (hovered) setHovered(null);
+  };
 
   const findEmotionAtCoords = (e) => {
     const img = imgRef.current;
@@ -964,9 +964,6 @@ const handlePointerMove = (e) => {
 
     if (dist < innerIRadius || dist >= outerORadius) return null;
 
-    // const iR = layoutRadius * multiRing;
-    // if (dist < iR || dist >= layoutRadius) return null;
-
     let deg = (Math.atan2(uy, ux) * 180) / Math.PI;
     if (deg < 0) deg += 360;
 
@@ -984,7 +981,6 @@ const handlePointerMove = (e) => {
 
   const handleMouseMove = (e) => {
     if (!isMobile) return;
-    // setMobileHovered(findEmotionAtCoords(e));
     setHovered(findEmotionAtCoords(e));
   };
 
@@ -1002,6 +998,8 @@ const handlePointerMove = (e) => {
 
   return (
     <>
+    <div className="page-wrapper">
+    
       <div
         ref={containerRef}
         className="wheel-container"
@@ -1035,6 +1033,7 @@ const handlePointerMove = (e) => {
             <p>{tooltipData.description}</p>
           </div>
         )}
+      </div>
 
         <div id="how-to-use">
           <h1>How to Use</h1>

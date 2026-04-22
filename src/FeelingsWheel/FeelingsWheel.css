@@ -46,7 +46,7 @@
     margin: 0 auto;
     max-width: min(80vw, 700px);
     overflow: hidden;
-    touch-action: pan-y pinch-zoom;
+    touch-action: pan-y;
     -webkit-user-drag: none;
     -webkit-tap-highlight-color: transparent;
     user-select: none;
@@ -55,6 +55,7 @@
   .wheel-image {
     margin-top: 65px;
     border-radius: 54px;
+    touch-action: pinch-zoom;
   }
 
   .tooltip {

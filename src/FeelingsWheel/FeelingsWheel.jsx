@@ -1051,8 +1051,8 @@ const Wheel = () => {
           </p>
 
           <p>
-            Feel free to check out our{" "}
-            <Link to="/emotional-checkin">Emotional Check-In Guide</Link> for more
+            Feel free to check out our
+            <a href="/emotional-checkin"> Emotional Check-In Guide</a> for more
             help!
           </p>
         </div>

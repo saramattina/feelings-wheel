@@ -1051,9 +1051,7 @@ const Wheel = () => {
           </p>
 
           <p>
-            Feel free to check out our
-            <a href="/emotional-checkin"> Emotional Check-In Guide</a> for more
-            help!
+            Feel free to check out our Emotional Check-In Guide for more help!
           </p>
         </div>
       </div>

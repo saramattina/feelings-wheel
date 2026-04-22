@@ -46,7 +46,7 @@
     margin: 0 auto;
     max-width: min(80vw, 700px);
     overflow: hidden;
-    touch-action: pan-y;
+    touch-action: pan-y pinch-zoom;
     -webkit-user-drag: none;
     -webkit-tap-highlight-color: transparent;
     user-select: none;

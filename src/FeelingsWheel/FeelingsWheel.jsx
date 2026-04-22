@@ -1,6 +1,7 @@
 // Credit goes to Dylan Tai for this wheel code!
 
 import { useRef, useState, useEffect } from "react";
+import { Link } from "react-router";
 import wheelImg from "../assets/FeelingsWheel.png";
 import "./FeelingsWheel.css";
 import EmotionalCheckIn from "../EmotionalCheckIn/EmotionalCheckIn";
@@ -1051,7 +1052,7 @@ const Wheel = () => {
 
           <p>
             Feel free to check out our{" "}
-            <a href="/emotional-checkin">Emotional Check-In Guide</a> for more
+            <Link to="/emotional-checkin">Emotional Check-In Guide</Link> for more
             help!
           </p>
         </div>

@@ -6,6 +6,32 @@ import wheelImg from "../assets/FeelingsWheel.png";
 import "./FeelingsWheel.css";
 import EmotionalCheckIn from "../EmotionalCheckIn/EmotionalCheckIn";
 
+/** Keep in sync with @media (max-width: …) in FeelingsWheel.css */
+const MOBILE_MAX_WIDTH_PX = 700;
+
+const mobileMediaQuery = `(max-width: ${MOBILE_MAX_WIDTH_PX}px)`;
+
+function getIsMobileViewport() {
+  if (typeof window === "undefined") return false;
+  return window.matchMedia(mobileMediaQuery).matches;
+}
+
+function useIsMobileViewport() {
+  const [isMobile, setIsMobile] = useState(getIsMobileViewport);
+
+  useEffect(() => {
+    const mediaQuery = window.matchMedia(mobileMediaQuery);
+
+    const sync = () => setIsMobile(mediaQuery.matches);
+    sync();
+
+    mediaQuery.addEventListener("change", sync);
+    return () => mediaQuery.removeEventListener("change", sync);
+  }, []);
+
+  return isMobile;
+}
+
 const arcMidpoint = (emo) => {
   const { start, end } = emo;
   if (start < end) return (start + end) / 2;
@@ -944,18 +970,10 @@ const Wheel = () => {
   const containerRef = useRef(null);
   const [angle, setAngle] = useState(0);
   const [hovered, setHovered] = useState(null);
-  const [isMobile, setIsMobile] = useState(false);
+  const isMobile = useIsMobileViewport();
 
   const dragging = useRef(false);
   const lastAngle = useRef(0);
-
-  //   check if user is on mobile
-  useEffect(() => {
-    const checkMobile = () => setIsMobile(window.innerWidth <= 700);
-    checkMobile();
-    window.addEventListener("resize", checkMobile);
-    return () => window.removeEventListener("resize", checkMobile);
-  }, []);
 
   const getAngleFromEvent = (e, rect) => {
     const clientX = e.pageX ?? e.touches?.[0]?.pageX;

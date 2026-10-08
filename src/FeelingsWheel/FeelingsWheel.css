@@ -41,7 +41,7 @@
   border-radius: 40%;
 }
 
-/* MOBILE */
+/* MOBILE — max-width must match MOBILE_MAX_WIDTH_PX in FeelingsWheel.jsx */
 
 @media (max-width: 700px) {
   .page-wrapper {

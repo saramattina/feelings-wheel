@@ -4,6 +4,36 @@ import { useRef, useState, useEffect } from "react";
 import wheelImg from "../assets/FeelingsWheel.png";
 import "./FeelingsWheel.css";
 
+const arcMidpoint = (emo) => {
+  const { start, end } = emo;
+  if (start < end) return (start + end) / 2;
+  const span = 360 - start + end;
+  let mid = start + span / 2;
+  if (mid >= 360) mid -= 360;
+  return mid;
+};
+
+const angleInArc = (deg, emo) => {
+  const { start, end } = emo;
+  if (start < end) return deg >= start && deg < end;
+  return deg >= start || deg < end;
+};
+
+const findInnerForEmotion = (emo) => {
+  const mid = arcMidpoint(emo);
+  return innerCircle.find((inner) => angleInArc(mid, inner));
+};
+
+const buildMobileEmotionGroups = () =>
+  innerCircle.map((inner) => {
+    const feelings = [...middleCircle, ...outerCircle]
+      .filter((emo) => findInnerForEmotion(emo)?.name === inner.name)
+      .sort((a, b) =>
+        a.name.localeCompare(b.name, undefined, { sensitivity: "base" }),
+      );
+    return { ...inner, feelings };
+  });
+
 const innerCircle = [
   {
     name: "Happy",
@@ -833,12 +863,85 @@ const outerCircle = [
   },
 ];
 
+const mobileEmotionGroups = buildMobileEmotionGroups();
+
+function MobileFeelingsAccordion({ groups }) {
+  const [expandedInner, setExpandedInner] = useState(null);
+  const accordionRef = useRef(null);
+
+  useEffect(() => {
+    if (!expandedInner) return;
+
+    const handleOutsideClick = (e) => {
+      if (
+        accordionRef.current &&
+        !accordionRef.current.contains(e.target)
+      ) {
+        setExpandedInner(null);
+      }
+    };
+
+    window.addEventListener("click", handleOutsideClick);
+    return () => window.removeEventListener("click", handleOutsideClick);
+  }, [expandedInner]);
+
+  const toggleInner = (name) => {
+    setExpandedInner((current) => (current === name ? null : name));
+  };
+
+  return (
+    <div
+      ref={accordionRef}
+      className={`mobile-feelings-accordion${expandedInner ? " mobile-feelings-accordion--expanded" : ""}`}
+    >
+      {groups.map((inner) => {
+        const isOpen = expandedInner === inner.name;
+        return (
+          <div
+            key={inner.name}
+            className={`accordion-item ${isOpen ? "accordion-item--open" : ""}`}
+          >
+            <button
+              type="button"
+              className="accordion-trigger"
+              aria-expanded={isOpen}
+              onClick={() => toggleInner(inner.name)}
+            >
+              <span className="accordion-trigger-label">{inner.name}</span>
+              <span className="accordion-chevron" aria-hidden="true">
+                {isOpen ? "−" : "+"}
+              </span>
+            </button>
+            {isOpen && (
+              <div className="accordion-panel">
+                <p className="accordion-inner-description">{inner.description}</p>
+                <ul className="accordion-feelings-list">
+                  {inner.feelings.map((feeling) => (
+                    <li
+                      key={`${feeling.name}-${feeling.start}`}
+                      className="accordion-feeling-item"
+                    >
+                      <span className="accordion-feeling-name">{feeling.name}</span>
+                      <span className="accordion-feeling-description">
+                        {feeling.description}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
 const Wheel = () => {
   const imgRef = useRef(null);
   const containerRef = useRef(null);
   const [angle, setAngle] = useState(0);
   const [hovered, setHovered] = useState(null);
-  const [mobileHovered, setMobileHovered] = useState(null);
   const [isMobile, setIsMobile] = useState(false);
 
   const dragging = useRef(false);
@@ -851,19 +954,6 @@ const Wheel = () => {
     window.addEventListener("resize", checkMobile);
     return () => window.removeEventListener("resize", checkMobile);
   }, []);
-
-  //   close tooltip by clicking outside of wheel (mobile only)
-  useEffect(() => {
-    if (!isMobile) return;
-
-    const handleOutsideClick = (e) => {
-      if (containerRef.current && !containerRef.current.contains(e.target)) {
-        setMobileHovered(null);
-      }
-    };
-    window.addEventListener("click", handleOutsideClick);
-    return () => window.removeEventListener("click", handleOutsideClick);
-  }, [isMobile]);
 
   const getAngleFromEvent = (e, rect) => {
     const clientX = e.pageX ?? e.touches?.[0]?.pageX;
@@ -891,9 +981,8 @@ const Wheel = () => {
     }
   };
 
-  const handlePointerUp = () => {
+  const handlePointerUp = (e) => {
     dragging.current = false;
-    // e.currentTarget.releasePointerCapture(e.pointerId);
     if (
       e.pointerId !== undefined &&
       e.currentTarget.hasPointerCapture(e.pointerId)
@@ -979,74 +1068,59 @@ const Wheel = () => {
     return hit(outerCircle);
   };
 
-  const handleMouseMove = (e) => {
-    if (!isMobile) return;
-    setHovered(findEmotionAtCoords(e));
-  };
-
-  const handleClick = (e) => {
-    if (!isMobile) return;
-
-    e.stopPropagation();
-
-    const clickedEmotion = findEmotionAtCoords(e);
-    setMobileHovered(clickedEmotion);
-    console.log(clickedEmotion);
-  };
-
-  const tooltipData = isMobile ? mobileHovered : hovered;
-
   return (
     <>
-    <div className="page-wrapper">
-    
-      <div
-        ref={containerRef}
-        className="wheel-container"
-        onPointerDown={handlePointerDown}
-        onPointerMove={handlePointerMove}
-        onPointerUp={handlePointerUp}
-        onPointerCancel={handlePointerUp}
-        onMouseMove={handleMouseMove}
-        onClick={handleClick}
-      >
-        <img
-          ref={imgRef}
-          src={wheelImg}
-          alt="Feelings Wheel"
-          draggable="false"
-          className="wheel-image"
-          style={{ transform: `rotate(${angle}deg)` }}
-        />
+    <div className={`page-wrapper ${isMobile ? "page-wrapper--mobile" : ""}`}>
+      {isMobile ? (
+        <MobileFeelingsAccordion groups={mobileEmotionGroups} />
+      ) : (
+        <div
+          ref={containerRef}
+          className="wheel-container"
+          onPointerDown={handlePointerDown}
+          onPointerMove={handlePointerMove}
+          onPointerUp={handlePointerUp}
+          onPointerCancel={handlePointerUp}
+        >
+          <img
+            ref={imgRef}
+            src={wheelImg}
+            alt="Feelings Wheel"
+            draggable="false"
+            className="wheel-image"
+            style={{ transform: `rotate(${angle}deg)` }}
+          />
 
-        {tooltipData && (
-          <div className="tooltip" onClick={(e) => e.stopPropagation()}>
-            {isMobile && (
-              <button
-                className="close-btn"
-                onClick={() => setMobileHovered(null)}
-              >
-                ✕
-              </button>
-            )}
-            <h3>{tooltipData.name}</h3>
-            <p>{tooltipData.description}</p>
-          </div>
-        )}
-      </div>
+          {hovered && (
+            <div className="tooltip" onClick={(e) => e.stopPropagation()}>
+              <h3>{hovered.name}</h3>
+              <p>{hovered.description}</p>
+            </div>
+          )}
+        </div>
+      )}
 
         <div id="how-to-use">
           <h1>How to Use</h1>
-          <p>
-            A feelings wheel can be a helpful tool for identifying and naming
-            emotions. To use, start at the center of the feelings wheel and then
-            move more outward to more specific feeling words. Take a moment to
-            reflect on which word feels most accurate. It can help to think
-            about what happened, how your body feels, or what thoughts you're
-            having. Using a feeling wheel regularly can help build emotional
-            awareness and make it easier to express what you're feeling to
-            yourself and others!
-          </p>
+          {isMobile ? (
+            <p>
+              Tap a core feeling to open the list, then read outward to more
+              specific words. Take a moment to reflect on which word feels most
+              accurate. It can help to think about what happened, how your body
+              feels, or what thoughts you&apos;re having.
+            </p>
+          ) : (
+            <p>
+              A feelings wheel can be a helpful tool for identifying and naming
+              emotions. To use, start at the center of the feelings wheel and then
+              move more outward to more specific feeling words. Take a moment to
+              reflect on which word feels most accurate. It can help to think
+              about what happened, how your body feels, or what thoughts
+              you&apos;re having. Using a feeling wheel regularly can help build
+              emotional awareness and make it easier to express what you&apos;re
+              feeling to yourself and others!
+            </p>
+          )}
 
           <p>
             Feel free to check out our{" "}

@@ -41,10 +41,11 @@
   border-radius: 40%;
 }
 
+/* MOBILE */
+
 @media (max-width: 700px) {
   .page-wrapper {
     margin: 0 auto;
-    max-width: min(80vw, 700px);
     overflow: hidden;
     touch-action: pan-y;
     -webkit-user-drag: none;
@@ -52,21 +53,37 @@
     user-select: none;
   }
 
+  .page-wrapper--mobile {
+    overflow: visible;
+    touch-action: auto;
+    margin-top: 1rem;
+  }
+
   .wheel-image {
     margin-top: 65px;
     border-radius: 54px;
-    touch-action: pinch-zoom;
-  }
+  } 
+
+   .tooltip h3 {
+    margin-top: 0.05rem;
+  } 
 
   .tooltip {
     left: auto;
     top: 40%;
     max-width: 69vw;
-  }
+  } 
 
   #how-to-use {
     margin-top: 200px;
     margin-bottom: 160px;
+    text-align: center;
+  }
+
+  .page-wrapper--mobile #how-to-use {
+    margin-top: 2rem;
+    margin-bottom: 6rem;
+    padding: 0 0.25rem;
   }
 
   .close-btn {
@@ -81,7 +98,120 @@
     left: 85%;
   }
 
-  .tooltip h3 {
-    margin-top: 0.05rem;
+  .mobile-feelings-accordion {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 0.65rem;
+    position: relative;
+    z-index: 2;
+    margin-top: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .page-wrapper--mobile:has(.mobile-feelings-accordion--expanded) #how-to-use {
+    opacity: 0.85;
+  }
+
+  .mobile-feelings-accordion--expanded .accordion-item:not(.accordion-item--open) {
+    opacity: 0.72;
+    transition: opacity 0.2s ease;
+  }
+
+  .mobile-feelings-accordion--expanded .accordion-item--open {
+    opacity: 1;
+  }
+
+  .mobile-accordion-intro {
+    margin: 0 0 0.35rem;
+    font-size: 0.95rem;
+    line-height: 1.45;
+    text-align: center;
+    color: inherit;
+    opacity: 0.9;
+  }
+
+  .accordion-item {
+    border: 2px solid #a2a77f;
+    border-radius: 14px;
+    overflow: hidden;
+    background: rgba(255, 255, 255, 0.04);
+  }
+
+  .accordion-item--open {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  }
+
+  .accordion-trigger {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    padding: 0.85rem 1rem;
+    border: none;
+    background: rgba(162, 167, 127, 0.25);
+    color: inherit;
+    font: inherit;
+    font-size: 1.05rem;
+    font-weight: 600;
+    text-align: left;
+    cursor: pointer;
+  }
+
+  .accordion-trigger-label {
+    flex: 1;
+    background: rgba(255, 255, 255, 0.04);
+  }
+
+  .accordion-chevron {
+    flex-shrink: 0;
+    font-size: 1.25rem;
+    line-height: 1;
+    opacity: 0.85;
+    background: rgba(255, 255, 255, 0.04);
+  }
+
+  .accordion-panel {
+    padding: 0.75rem 1rem 1rem;
+    border-top: 1px solid rgba(162, 167, 127, 0.45);
+    max-height: min(62vh, 520px);
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .accordion-inner-description {
+    margin: 0 0 1rem;
+    font-size: 0.92rem;
+    line-height: 1.45;
+    opacity: 0.92;
+  }
+
+  .accordion-feelings-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.65rem;
+  }
+
+  .accordion-feeling-item {
+    padding-left: 0.65rem;
+    border-left: 3px solid rgba(162, 167, 127, 0.65);
+  }
+
+  .accordion-feeling-name {
+    display: block;
+    font-weight: 600;
+    font-size: 0.92rem;
+    margin-bottom: 0.15rem;
+  }
+
+  .accordion-feeling-description {
+    display: block;
+    font-size: 0.85rem;
+    line-height: 1.35;
+    opacity: 0.88;
   }
 }

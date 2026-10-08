@@ -47,7 +47,7 @@
   .page-wrapper {
     margin: 0 auto;
     overflow: hidden;
-    touch-action: none;
+    touch-action: pan-y;
     -webkit-user-drag: none;
     -webkit-tap-highlight-color: transparent;
     user-select: none;
@@ -59,20 +59,20 @@
     margin-top: 1rem;
   }
 
-  /* .wheel-image {
+  .wheel-image {
     margin-top: 65px;
     border-radius: 54px;
-  } */
+  } 
 
-    /* .tooltip h3 {
+   .tooltip h3 {
     margin-top: 0.05rem;
-  } */
+  } 
 
-  /* .tooltip {
+  .tooltip {
     left: auto;
     top: 40%;
     max-width: 69vw;
-  } */
+  } 
 
   #how-to-use {
     margin-top: 200px;

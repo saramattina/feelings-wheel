@@ -1,8 +1,10 @@
 // Credit goes to Dylan Tai for this wheel code!
 
 import { useRef, useState, useEffect } from "react";
+import { Link } from "react-router";
 import wheelImg from "../assets/FeelingsWheel.png";
 import "./FeelingsWheel.css";
+import EmotionalCheckIn from "../EmotionalCheckIn/EmotionalCheckIn";
 
 const arcMidpoint = (emo) => {
   const { start, end } = emo;
@@ -1123,9 +1125,7 @@ const Wheel = () => {
           )}
 
           <p>
-            Feel free to check out our{" "}
-            <a href="/emotional-checkin">Emotional Check-In Guide</a> for more
-            help!
+            Feel free to check out our Emotional Check-In Guide for more help!
           </p>
         </div>
       </div>
